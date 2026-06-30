@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: python -m ruff check .
+
+      - name: Check formatting (ruff)
+        run: python -m ruff format --check .
+
+      - name: Run tests
+        run: pytest
+
+      - name: Train sample model
+        run: python -m src.train --data-path data/raw/sample_telco_churn.csv --no-tune --skip-shap
+
+      - name: Smoke-test prediction
+        run: |
+          python -c "from src.predict import predict_churn; from dashboard.service import DEFAULT_CUSTOMER; print(predict_churn(DEFAULT_CUSTOMER)[0])"

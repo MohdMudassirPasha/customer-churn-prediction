@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+
+# Runtime artifacts
+logs/
+mlruns/
+models/*.joblib
+models/*.pkl
+models/*.pickle
+models/*.json
+reports/*.json
+reports/*.csv
+reports/figures/*.png
+reports/shap/*
+data/processed/*.csv
+data/raw/*.csv
+!data/raw/sample_telco_churn.csv
+
+# Local notebooks and OS files
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid

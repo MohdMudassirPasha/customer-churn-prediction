@@ -1,0 +1,4 @@
+-r requirements.txt
+
+# Static analysis, formatting, and import sorting (configured in pyproject.toml).
+ruff>=0.11,<1.0
