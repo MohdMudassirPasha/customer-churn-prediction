@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -37,13 +38,27 @@ def _log_mlflow_run(
     artifact_paths: list[Path],
     config: Settings = settings,
 ) -> None:
-    """Track model training with MLflow."""
+    """Track model training with MLflow.
+
+    Tracking is optional and can be turned off entirely via ``MLFLOW_ENABLED=false``
+    (used, for example, in CI where experiment artifacts are ephemeral).
+    """
+    if not config.mlflow_enabled:
+        logger.info("MLflow tracking disabled (MLFLOW_ENABLED=false); skipping.")
+        return
+
     try:
         import mlflow
         import mlflow.sklearn
     except ImportError:
         logger.warning("MLflow is not installed; skipping MLflow tracking.")
         return
+
+    # File-store backends are in maintenance mode as of MLflow 3.x and raise unless the
+    # caller explicitly opts in. Honor that officially supported opt-out for local
+    # file-based tracking while leaving any user-provided value untouched.
+    if config.mlflow_tracking_uri.startswith("file:"):
+        os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
 
     mlflow.set_tracking_uri(config.mlflow_tracking_uri)
     mlflow.set_experiment(config.mlflow_experiment_name)
@@ -56,7 +71,14 @@ def _log_mlflow_run(
                     mlflow.log_artifacts(str(artifact_path))
                 else:
                     mlflow.log_artifact(str(artifact_path))
-        mlflow.sklearn.log_model(model, artifact_path="model")
+        # The pipeline contains project-defined transformers. MLflow 3.x defaults to the
+        # skops format, which refuses to serialize custom classes; cloudpickle (the prior
+        # default) handles them and keeps logged models consistent with the joblib artifact.
+        mlflow.sklearn.log_model(
+            model,
+            artifact_path="model",
+            serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,
+        )
 
 
 def train_project(

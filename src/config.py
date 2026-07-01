@@ -109,6 +109,12 @@ class Settings:
         )
     )
 
+    mlflow_enabled: bool = os.getenv("MLFLOW_ENABLED", "true").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
     mlflow_experiment_name: str = os.getenv(
         "MLFLOW_EXPERIMENT_NAME",
         "customer-churn-prediction",

@@ -30,6 +30,10 @@ jobs:
         run: python -m ruff format --check .
 
       - name: Train sample model
+        env:
+          # Experiment tracking is optional and its artifacts are ephemeral on CI
+          # runners, so skip MLflow logging for the smoke-test train.
+          MLFLOW_ENABLED: "false"
         run: python -m src.train --data-path data/raw/sample_telco_churn.csv --no-tune --skip-shap
 
       - name: Smoke-test prediction
