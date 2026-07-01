@@ -29,12 +29,12 @@ jobs:
       - name: Check formatting (ruff)
         run: python -m ruff format --check .
 
-      - name: Run tests
-        run: pytest
-
       - name: Train sample model
         run: python -m src.train --data-path data/raw/sample_telco_churn.csv --no-tune --skip-shap
 
       - name: Smoke-test prediction
         run: |
           python -c "from src.predict import predict_churn; from dashboard.service import DEFAULT_CUSTOMER; print(predict_churn(DEFAULT_CUSTOMER)[0])"
+
+      - name: Run tests
+        run: pytest
